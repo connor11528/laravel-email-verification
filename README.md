@@ -76,3 +76,65 @@ Create the email that you want to send to the user. There is a handy artisan com
 ``` 
 $ php artisan make:mail EmailVerification
 ```
+
+That file is in **app/Mail** and can be modified to look like so: 
+
+``` 
+<?php
+
+namespace App\Mail;
+
+use Illuminate\Bus\Queueable;
+use Illuminate\Mail\Mailable;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Contracts\Queue\ShouldQueue;
+
+class EmailVerification extends Mailable
+{
+    use Queueable, SerializesModels;
+    
+    protected $user;
+
+    /**
+     * Create a new message instance.
+     *
+     * @return void
+     */
+    public function __construct($user)
+    {
+        $this->user = $user;
+    }
+
+    /**
+     * Build the message.
+     *
+     * @return $this
+     */
+    public function build()
+    {
+        return $this->view('email.verify_account')->with([
+            'email_token' => $this->user->email_token    
+        ]);
+    }
+}
+```
+
+## Step 6
+
+Create the email view within **resources/views/email/verify_account.blade.php**:
+
+``` 
+<h1>Click the Link To Verify Your Email</h1>
+Click the following link to verify your email {{ url('/verifyemail/' . $email_token) }}
+```
+
+## Step 7
+
+Now we need to make a new job that will fire off the email:
+
+``` 
+$ php artisan make:job SendVerificationEmail
+```
+
+That job will live in **app/Jobs**.
+
