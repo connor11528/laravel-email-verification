@@ -6,6 +6,8 @@ web functionality we've all experienced when signing up for new accounts online.
 a Laravel app for people to use and put it behind a login form. Many people used garbage emails to sign up and access the app. 
 This isn't protected by default with Laravel's auth scaffold, so let's add it real quick!
 
+> Draws heavily from [this tutorial](https://hackernoon.com/how-to-use-queue-in-laravel-5-4-for-email-verification-3617527a7dbf) by Ahmed Khan ([@ahmedkhan847](https://github.com/ahmedkhan847))
+
 > [Source code](https://github.com/connor11528/laravel-email-verification) is available for free on Github.
 
 ## Step 1
