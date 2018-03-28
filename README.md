@@ -194,6 +194,171 @@ class SendVerificationEmail implements ShouldQueue
 
 ## Step 8
 
+Update the RegisterController.php:
+
+```
+<?php
+
+namespace App\Http\Controllers\Auth;
+
+use App\User;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Foundation\Auth\RegistersUsers;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Http\Request;
+use App\Jobs\SendVerificationEmail;
+
+class RegisterController extends Controller
+{
+    /*
+    |--------------------------------------------------------------------------
+    | Register Controller
+    |--------------------------------------------------------------------------
+    |
+    | This controller handles the registration of new users as well as their
+    | validation and creation. By default this controller uses a trait to
+    | provide this functionality without requiring any additional code.
+    |
+    */
+
+    use RegistersUsers;
+
+    /**
+     * Where to redirect users after registration.
+     *
+     * @var string
+     */
+    protected $redirectTo = '/home';
+
+    /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        $this->middleware('guest');
+    }
+
+    /**
+     * Get a validator for an incoming registration request.
+     *
+     * @param  array  $data
+     * @return \Illuminate\Contracts\Validation\Validator
+     */
+    protected function validator(array $data)
+    {
+        return Validator::make($data, [
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:6|confirmed',
+        ]);
+    }
+
+    /**
+     * Create a new user instance after a valid registration.
+     *
+     * @param  array  $data
+     * @return \App\User
+     */
+    protected function create(array $data)
+    {
+        return User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => Hash::make($data['password']),
+            'email_token' => base64_encode($data['email']),
+        ]);
+    }
+
+    /**
+     * Handle a registration request for the application.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function register(Request $request)
+    {
+        $this->validator($request->all())->validate();
+        event(new Registered($user = $this->create($request->all())));
+
+        dispatch(new SendVerificationEmail($user));
+
+        return view('verification');
+    }
+
+    /**
+     * Handle a registration request for the application.
+     *
+     * @param $token
+     * @return \Illuminate\Http\Response
+     */
+    public function verify($token)
+    {
+        $user = User::where('email_token', $token)->first();
+        $user->verified = 1;
+
+        if($user->save()){
+            return view('emailconfirm', ['user' => $user]);
+        }
+    }
+}
+```
+
+## Step 9
+
+and add the views...
+
+**resources/views/email/verify_account.blade.php**
+
+```
+<h1>Click the Link To Verify Your Email</h1>
+Click the following link to verify your email {{ url('/verifyemail/' . $email_token) }}
+```
+
+**resources/views/verification.blade.php**
+
+```
+@extends('layouts.app')
+@section('content')
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+            <div class="panel panel-default">
+                <div class="panel-heading">Registration</div>
+                <div class="panel-body">
+                    You have successfully registered. An email is sent to you for verification.
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection
+```
+
+**resources/views/emailconfirm.blade.php**
+
+```
+@extends('layouts.app')
+@section('content')
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+            <div class="panel panel-default">
+                <div class="panel-heading">Registration Confirmed</div>
+                <div class="panel-body">
+                    Your Email is successfully verified. Click here to <a href="{{ url('/login') }}">login</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+@endsection
+```
+
+## Step 10
+
 That's it! Register for your application locally and you'll be redirected to the "we sent you an email screen". Check your email, click the link 
 and your account will be verified. From there you'll be able to login successfully. All of our testing here is done locally. To get your application
 live to the internet you could [deploy to heroku](http://connorleech.info/blog/Deploy-a-Laravel-5-app-to-Heroku/). As an exercise for the reader you 
@@ -202,4 +367,3 @@ could switch your queue driver to Redis with Laravel Horizon, or leave it as is 
 If you have any questions shoot me an email (above) or hit me up on [twitter](https://twitter.com/Connor11528).
 
 > [Source code](https://github.com/connor11528/laravel-email-verification) is available for free on Github.
-
