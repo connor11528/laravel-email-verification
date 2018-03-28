@@ -357,7 +357,7 @@ Click the following link to verify your email {{ url('/verifyemail/' . $email_to
 @endsection
 ```
 
-## Step 10
+## Fin!
 
 That's it! Register for your application locally and you'll be redirected to the "we sent you an email screen". Check your email, click the link 
 and your account will be verified. From there you'll be able to login successfully. All of our testing here is done locally. To get your application
