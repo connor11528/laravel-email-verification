@@ -368,4 +368,6 @@ If you have any questions shoot me an email (above) or hit me up on [twitter](ht
 
 > [Source code](https://github.com/connor11528/laravel-email-verification) is available for free on Github.
 
-**Update 04/06/18**: For sending a confirmation email after the user changes their password check out @smayzes tutorial here: https://medium.com/@smayzes/send-email-after-changing-password-in-laravel-55f1f656fdc9
+---
+
+**Update 04/06/18**: For sending a confirmation email after the user changes their password check out [@smayzes](https://github.com/smayzes) tutorial [here](https://medium.com/@smayzes/send-email-after-changing-password-in-laravel-55f1f656fdc9)
